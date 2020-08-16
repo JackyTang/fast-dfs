@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="60 seconds" debug="false">
+    <contextName>parking-box</contextName>
+
+    <property name="LOG_CHARSET"          value="utf-8" />
+    <property name="LOG_FILE_MAX_HISTORY" value="30"    />
+    <include resource="org/springframework/boot/logging/logback/defaults.xml" />
+    <springProperty scope="context" name="LOGGING_FILE_PATH"   source="logging.file.path" />
+    <springProperty scope="context" name="LOGGING_LEVEL_INFO"  source="logging.level.info" />
+    <springProperty scope="context" name="LOGGING_LEVEL_ERROR" source="logging.level.error" />
+    <springProperty scope="context" name="LOGGING_LEVEL_DEBUG" source="logging.level.debug" />
+
+    <!-- 输出到控制台 -->
+    <appender name="LOG_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <charset>${LOG_CHARSET}</charset>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 输出到文件 -->
+    <appender name="LOG_INFO" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOGGING_FILE_PATH}/info/sys-info.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOGGING_FILE_PATH}/info/sys-info.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>${LOG_FILE_MAX_HISTORY}</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <charset>${LOG_CHARSET}</charset>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>${LOGGING_LEVEL_INFO}</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <appender name="LOG_ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOGGING_FILE_PATH}/error/sys-error.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOGGING_FILE_PATH}/error/sys-error.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>${LOG_FILE_MAX_HISTORY}</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <charset>${LOG_CHARSET}</charset>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>${LOGGING_LEVEL_ERROR}</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <!-- 异步输出 -->
+    <appender name="ASYNC_INFO" class="ch.qos.logback.classic.AsyncAppender">
+        <!-- 不丢失日志.默认的,如果队列的80%已满,则会丢弃TRACT、DEBUG、INFO级别的日志 -->
+        <discardingThreshold>0</discardingThreshold>
+        <!-- 更改默认的队列的深度,该值会影响性能.默认值为256 -->
+        <queueSize>256</queueSize>
+        <!-- 添加附加的appender,最多只能添加一个 -->
+        <appender-ref ref="LOG_INFO"/>
+    </appender>
+
+    <appender name="ASYNC_ERROR" class="ch.qos.logback.classic.AsyncAppender">
+        <!-- 不丢失日志.默认的,如果队列的80%已满,则会丢弃TRACT、DEBUG、INFO级别的日志 -->
+        <discardingThreshold>0</discardingThreshold>
+        <!-- 更改默认的队列的深度,该值会影响性能.默认值为256 -->
+        <queueSize>256</queueSize>
+        <!-- 添加附加的appender,最多只能添加一个 -->
+        <appender-ref ref="LOG_ERROR"/>
+    </appender>
+
+    <!-- 多环境配置 按照active profile选择分支 -->
+    <springProfile name="dev,test">
+        <!--root节点 全局日志级别，用来指定最基础的日志输出级别-->
+        <root level="${LOGGING_LEVEL_DEBUG}">
+            <appender-ref ref="LOG_CONSOLE" />
+            <appender-ref ref="LOG_INFO" />
+            <appender-ref ref="LOG_ERROR" />
+        </root>
+
+        <!-- 子节点向上级传递 局部日志级别 -->
+        <logger name="org.springframework"    level="${LOGGING_LEVEL_DEBUG}"/>
+        <logger name="com.springboot.fastdfs" level="${LOGGING_LEVEL_DEBUG}"/>
+    </springProfile>
+
+    <springProfile name="prod">
+        <!-- root节点 全局日志级别，用来指定最基础的日志输出级别 -->
+        <root level="${LOGGING_LEVEL_INFO}">
+            <appender-ref ref="LOG_CONSOLE" />
+            <appender-ref ref="LOG_INFO" />
+            <appender-ref ref="LOG_ERROR" />
+        </root>
+
+        <!-- 子节点向上级传递 局部日志级别 -->
+        <logger name="org.springframework"    level="${LOGGING_LEVEL_ERROR}"/>
+        <logger name="com.springboot.fastdfs" level="${LOGGING_LEVEL_INFO}"/>
+    </springProfile>
+</configuration>

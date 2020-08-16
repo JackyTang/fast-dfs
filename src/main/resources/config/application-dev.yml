@@ -17,3 +17,11 @@ fdfs:
     max-total-per-key: 50
     #每个key对应的连接池最大空闲连接数
     max-idle-per-key: 10
+
+logging:
+  level:
+    info: info
+    error: error
+    debug: debug
+  file:
+    path: ./logs
